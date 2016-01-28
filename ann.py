@@ -23,3 +23,19 @@ args = parser.parse_args()
 file_name = args.file_name
 hidden_nodes = get_argument(args.optional_arguments, 'h')
 holdout_percent = get_argument(args.optional_arguments, 'p')
+
+"Read the file and store it as a list of lines"
+with open(file_name) as f:
+	file_content = f.readlines()
+
+"Store the lines as a list of dictionaries"
+points = []
+for line in file_content:
+	temp = line.split(" ");
+	"Skip all blank lines"
+	if(temp[0] == "\n"):
+		continue;
+	points.append({"x_val": temp[0], "y_val": temp[1], "class": temp[2][:-1]})
+
+print(points[0])
+
