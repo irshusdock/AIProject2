@@ -23,4 +23,3 @@ args = parser.parse_args()
 file_name = args.file_name
 hidden_nodes = get_argument(args.optional_arguments, 'h')
 holdout_percent = get_argument(args.optional_arguments, 'p')
-
