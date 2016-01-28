@@ -13,6 +13,10 @@ def get_argument(list_of_args, arg):
         counter = counter + 1
     return 0
 
+def neural_network(list_of_points, hidden_nodes):
+	hidden_layer = []
+	for x in range(0, hidden_nodes):
+		
 
 parser = argparse.ArgumentParser()
 parser.add_argument("file_name", help="The file name")
@@ -35,7 +39,8 @@ for line in file_content:
 	"Skip all blank lines"
 	if(temp[0] == "\n"):
 		continue;
+
+	"The last character of the line will be \n so it must be removed"
 	points.append({"x_val": temp[0], "y_val": temp[1], "class": temp[2][:-1]})
 
-print(points[0])
-
+for i in range (0,hidden_nodes)
