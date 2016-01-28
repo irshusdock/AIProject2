@@ -1,5 +1,8 @@
 import argparse
 
+"Parse through the list of arguements and return the value of the passed argument"
+"list_of_args is the list of arguments in the format [arg1, val1, arg2, val2, etc]"
+"arg is the argument to search for (e.x. arg1, arg2 in above)"
 def get_argument(list_of_args, arg):
     if(not list_of_args):
         return 0
