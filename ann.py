@@ -1,4 +1,5 @@
 import argparse
+import numpy
 
 "Parse through the list of arguements and return the value of the passed argument"
 "list_of_args is the list of arguments in the format [arg1, val1, arg2, val2, etc]"
@@ -16,7 +17,7 @@ def get_argument(list_of_args, arg):
 def generate_neural_network(list_of_points, hidden_nodes):
 	hidden_layer = []
 	for x in range(0, hidden_nodes):
-	
+		return
 		
 
 parser = argparse.ArgumentParser()
