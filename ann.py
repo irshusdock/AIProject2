@@ -34,16 +34,13 @@ class ANN():
 		#Create synapse weights
 		#The first layer will be a matrix of weights that has rows = numInputNodes, cols = numHiddenNodes
 		self.synapseLayer1 = num.random.uniform(0, 1, [self.numInputNodes, self.numHiddenNodes])
-		print("synapseLayer1")
-		print(self.synapseLayer1)
 		#The second layer will be a matrix of weights that has rows = numHiddenNodes, cols = numOutputNodes
 		self.synapseLayer2 = num.random.uniform(0, 1, [self.numHiddenNodes, self.numOutputNodes])
-		print("synapseLayer2")
-		print(self.synapseLayer2)
 	#Propagate input through to output
 	#Using an input matrix rather than pair value allows us to process clusters of input if we wish
 	#This can also be used for a 1x(number of values per point) matrix, handling a single point at a time
 	def propagate(self, inputMatrixArray):
+		self.inputMatrixArray = inputMatrixArray
 		#Apply synapse weighitng to all inputs to get values at hidden layer
 		self.hiddenNodeInput = num.dot(inputMatrixArray, self.synapseLayer1)
 		#Run activation function
@@ -61,20 +58,6 @@ class ANN():
 	def derivativeSigmoid(self, x):
 		return num.exp(-x)/((1+num.exp(-x))**2)
 
-	'''Define functions for error computation
-	def modifierCompute(self, input, expectedOutput):
-		actualOutput = neuralNet.propagate(input)
-		actualOutputMatrix = num.matrix(actualOutput)
-
-		errorMatrix2 = -(expectedOutput - actualOutputMatrix)
-		backPropError2 =  num.multiply(errorMatrix2, self.finalOutput)
-		modifierMatrix2 = num.dot(self.hiddenLayerOutput.T, backPropError2)
-
-		errorMatrix1 = num.dot(backPropError2, self.synapseLayer2.T)*self.derivativeSigmoid(self.hiddenNodeInput)
-		modifierMatrix1 = num.doit(input.T, errorMatrix1)
-
-		return modifierMatrix1, modifierMatrix2
-	'''
 	def modifierCompute(self, input, expectedOutput):
 		actualOutput = neuralNet.propagate(input)
 		actualOutputMatrix = num.matrix(actualOutput)
@@ -82,6 +65,7 @@ class ANN():
 		modifierMatrix2 = num.zeros(shape=(5, 1))
 		modifierMatrix1 = num.zeros(shape=(5, 2))
 
+		#Generate mod matrix for weights going from hidden layer to output
 		for x in range (0, self.numHiddenNodes):
 			#print("Output")
 			#print (actualOutputMatrix)
@@ -90,27 +74,40 @@ class ANN():
 			totalErrorMatrix = num.square(totalErrorMatrix)
 			totalErrorMatrix = num.divide(totalErrorMatrix, 2)
 			totalError = totalErrorMatrix.sum()
-			print("Total error")
-			print(totalError)
+			#print("Total error")
+			#print(totalError)
 
-			dTotalToOut = -(expectedOutput-actualOutput)
-			print("dTotalToOut")
-			print (dTotalToOut)
-			dOutToNet = actualOutput*(1-actualOutput)
-			print("OutToNet")
-			print (dOutToNet)
-			dNetToSynapse = self.hiddenLayerOutput.item(0, x)
-			print("dNetToSynapse")
-			print (dNetToSynapse)
-			dTotalToSynapse = dTotalToOut*dOutToNet*dNetToSynapse
-			print("dTotalToSynapse")
-			print(dTotalToSynapse)
+			dTotalToOut2 = -(expectedOutput-actualOutput)
+			#print("dTotalToOut")
+			#print (dTotalToOut)
+			dOutToNet2 = actualOutput*(1-actualOutput)
+			#print("OutToNet")
+			#print (dOutToNet)
+			dNetToSynapse2 = self.hiddenLayerOutput.item(0, x)
+			#print("dNetToSynapse")
+			#print (dNetToSynapse)
+			dTotalToSynapse2 = dTotalToOut2*dOutToNet2*dNetToSynapse2
+			#print("dTotalToSynapse")
+			#print(dTotalToSynapse)
+			modifierMatrix2[x, 0] = dTotalToSynapse2
 
-			modifierMatrix2[x, 0] = dTotalToSynapse
+		for y in range (0, self.numInputNodes):
+			for x in range (0, self.numHiddenNodes):
+
+					dTotalToNet1 = dTotalToOut2 * dOutToNet2
+					#Modify by weight
+					dTotalToOut1 = dTotalToNet1 * self.synapseLayer1.item(y, x)
+					#Find derivative of douth1 with respect to dneth1
+					dOutToNet1 = self.hiddenLayerOutput.item(0, x) * (1 - self.hiddenLayerOutput.item(0, x))
+					dNetToSynapse1 = self.inputMatrixArray.item(0, y)
+					dTotalToSynapse1 = dTotalToOut1 * dOutToNet1 * dNetToSynapse1
+					modifierMatrix1[x, y] = dTotalToSynapse1
 
 		print ("modifierMatrix2")
 		print (modifierMatrix2)
-		return modifierMatrix2
+		print ("modifierMatrix1")
+		print (modifierMatrix1)
+		return modifierMatrix2, modifierMatrix1
 
 "Start processing input"
 parser = argparse.ArgumentParser()
@@ -124,7 +121,7 @@ file_name = args.file_name
 "If no arguments are given, assign default values"
 input_nodes = 2
 if (int(get_argument(args.optional_arguments, 'h'))):
-	hidden_nodes = (int(get_argument(args.optional_arguments, 'h')))/100
+	hidden_nodes = (int(get_argument(args.optional_arguments, 'h')))
 else:
 	hidden_nodes = 5
 if (int(get_argument(args.optional_arguments, 'p'))):
