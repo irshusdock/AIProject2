@@ -15,6 +15,7 @@ def get_argument(list_of_args, arg):
     return 0
 
 "Used to split a list into two based on a percentage"
+#TODO: Make the split random, not based on sequence
 def split_list(list, percentage):
 	length = len(list)
 	divider = int(percentage*length)
@@ -65,7 +66,7 @@ class ANN():
 		actualOutputMatrix = num.matrix(actualOutput)
 
 		modifierMatrix2 = num.zeros(shape=(self.numHiddenNodes, self.numOutputNodes)) 
-		modifierMatrix1 = num.zeros(shape=(self.numHiddenNodes, self.numInputNodes))
+		modifierMatrix1 = num.zeros(shape=(self.numInputNodes, self.numHiddenNodes))
 
 		#Generate mod matrix for weights going from hidden layer to output
 		for x in range (0, self.numHiddenNodes):
@@ -97,13 +98,18 @@ class ANN():
 					dOutToNet1 = self.hiddenLayerOutput.item(0, x) * (1 - self.hiddenLayerOutput.item(0, x))
 					dNetToSynapse1 = self.inputMatrixArray.item(0, y)
 					dTotalToSynapse1 = dTotalToOut1 * dOutToNet1 * dNetToSynapse1
-					modifierMatrix1[x, y] = dTotalToSynapse1
+					modifierMatrix1[y, x] = dTotalToSynapse1
 
 		print ("modifierMatrix2")
 		print (modifierMatrix2)
 		print ("modifierMatrix1")
 		print (modifierMatrix1)
 		return modifierMatrix2, modifierMatrix1
+
+	def update_weights(self, modiferMatrix1, modifierMatrix2):
+		self.synapseLayer1 = num.subtract(self.synapseLayer1, modifierMatrix1)
+		self.synapseLayer2 = num.subtract(self.synapseLayer2, modifierMatrix2)
+		return
 
 "Start processing input"
 parser = argparse.ArgumentParser()
@@ -145,6 +151,20 @@ for line in file_content:
 testSet, trainingSet = split_list(points, holdout_percent)
 
 "Go through the training set and train the neural net on each val"
-neuralNet.modifierCompute(num.matrix([1.2, 0.4]), 0)
+#modifierMatrix2, modifierMatrix1 = neuralNet.modifierCompute(num.matrix([1.2, 0.4]), 0)
 
+#neuralNet.update_weights(modifierMatrix1, modifierMatrix2)
 
+for point in trainingSet:
+	modifierMatrix2, modifierMatrix1 = neuralNet.modifierCompute(num.matrix([point['x_val'], point['y_val']]), point['class'])
+	neuralNet.update_weights(modifierMatrix1, modifierMatrix2)
+
+incorrectClassifications = 0
+for point in testSet:
+	actual = neuralNet.propagate(num.matrix([point['x_val'], point['y_val']]))
+	actual = num.round(actual)
+	if(actual != point['class']):
+		incorrectClassifications = incorrectClassifications + 1
+
+print (len(testSet))
+print (incorrectClassifications)
