@@ -69,7 +69,7 @@ class ANN():
 		return num.exp(-x)/((1+num.exp(-x))**2)
 
 	def modifierCompute(self, input, expectedOutput):
-		actualOutput = neuralNet.propagate(input)
+		actualOutput = self.propagate(input)
 		actualOutputMatrix = num.matrix(actualOutput)
 
 		modifierMatrix2 = num.zeros(shape=(self.numHiddenNodes, self.numOutputNodes)) 
@@ -131,48 +131,52 @@ class ANN():
 		return
 
 
-"Start processing input"
-parser = argparse.ArgumentParser()
-parser.add_argument("file_name", help="The file name")
-parser.add_argument("optional_arguments", help="The option arguments (hidden nodes and holdhout percent)", nargs='*')
-args = parser.parse_args()
+def ann_main():
+	"Start processing input"
+	parser = argparse.ArgumentParser()
+	parser.add_argument("file_name", help="The file name")
+	parser.add_argument("optional_arguments", help="The option arguments (hidden nodes and holdhout percent)", nargs='*')
+	args = parser.parse_args()
 
 
-"Parse the arguments"
-file_name = args.file_name
-"If no arguments are given, assign default values"
-input_nodes = 2
-if (int(get_argument(args.optional_arguments, 'h'))):
-	hidden_nodes = (int(get_argument(args.optional_arguments, 'h')))
-else:
-	hidden_nodes = 5
-if (float(get_argument(args.optional_arguments, 'p'))):
-	holdout_percent = (float(get_argument(args.optional_arguments, 'p'))) #TODO CHECK THIS (dividing by 100)
-else:
-	holdout_percent = 0.20
+	"Parse the arguments"
+	file_name = args.file_name
+	"If no arguments are given, assign default values"
+	input_nodes = 2
+	if (int(get_argument(args.optional_arguments, 'h'))):
+		hidden_nodes = (int(get_argument(args.optional_arguments, 'h')))
+	else:
+		hidden_nodes = 5
+	if (float(get_argument(args.optional_arguments, 'p'))):
+		holdout_percent = (float(get_argument(args.optional_arguments, 'p'))) #TODO CHECK THIS (dividing by 100)
+	else:
+		holdout_percent = 0.20
 
-"The neural net we will use for the rest of the script"
-neuralNet = ANN(input_nodes, hidden_nodes, holdout_percent)
-"Read the file and store it as a list of lines"
-with open(file_name) as f:
-	file_content = f.readlines()
+	"The neural net we will use for the rest of the script"
+	neuralNet = ANN(input_nodes, hidden_nodes, holdout_percent)
+	"Read the file and store it as a list of lines"
+	with open(file_name) as f:
+		file_content = f.readlines()
 
-"Store the lines as a list of dictionaries"
-points = []
-for line in file_content:
-	temp = line.split(" ");
-	"Skip all blank lines"
-	if(temp[0] == "\n"):
-		continue;
-	"The last character of the line will be \n so it must be removed"
-	points.append({"x_val": float(temp[0]), "y_val": float(temp[1]), "class": float(temp[2][:-1])})
+	"Store the lines as a list of dictionaries"
+	points = []
+	for line in file_content:
+		temp = line.split(" ");
+		"Skip all blank lines"
+		if(temp[0] == "\n"):
+			continue;
+		"The last character of the line will be \n so it must be removed"
+		points.append({"x_val": float(temp[0]), "y_val": float(temp[1]), "class": float(temp[2][:-1])})
 
-"Separate data into training and test data"
-testSet, trainingSet = split_list(points, holdout_percent)
+	"Separate data into training and test data"
+	testSet, trainingSet = split_list(points, holdout_percent)
 
-"Go through the training set and train the neural net on each val"
-neuralNet.train_set(trainingSet)
+	"Go through the training set and train the neural net on each val"
+	neuralNet.train_set(trainingSet)
 
-errorRate = neuralNet.classify_set(testSet)
+	errorRate = neuralNet.classify_set(testSet)
 
-print(errorRate)
+	print(errorRate)
+
+if __name__ == '__main__':
+	ann_main()
