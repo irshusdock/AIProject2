@@ -33,9 +33,11 @@ class ANN():
 
 		#Create synapse weights
 		#The first layer will be a matrix of weights that has rows = numInputNodes, cols = numHiddenNodes
-		self.synapseLayer1 = num.random.uniform(0, 1, [self.numInputNodes, self.numHiddenNodes])
+		#This is the matrix of weights from input nodes to hidden nodes
+		self.synapseLayer1 = num.random.uniform(-1, 1, [self.numInputNodes, self.numHiddenNodes])
 		#The second layer will be a matrix of weights that has rows = numHiddenNodes, cols = numOutputNodes
-		self.synapseLayer2 = num.random.uniform(0, 1, [self.numHiddenNodes, self.numOutputNodes])
+		#This is the matrix of weights from hidden nodes to output nodes
+		self.synapseLayer2 = num.random.uniform(-1, 1, [self.numHiddenNodes, self.numOutputNodes])
 	#Propagate input through to output
 	#Using an input matrix rather than pair value allows us to process clusters of input if we wish
 	#This can also be used for a 1x(number of values per point) matrix, handling a single point at a time
@@ -53,7 +55,7 @@ class ANN():
 
 	#Perform sigmoid activation function
 	def sigmoid(self, x):
-		return (1/1+num.exp(-x))
+		return (1/(1+num.exp(-x)))
 
 	def derivativeSigmoid(self, x):
 		return num.exp(-x)/((1+num.exp(-x))**2)
@@ -62,33 +64,27 @@ class ANN():
 		actualOutput = neuralNet.propagate(input)
 		actualOutputMatrix = num.matrix(actualOutput)
 
-		modifierMatrix2 = num.zeros(shape=(5, 1))
-		modifierMatrix1 = num.zeros(shape=(5, 2))
+		modifierMatrix2 = num.zeros(shape=(self.numHiddenNodes, self.numOutputNodes)) 
+		modifierMatrix1 = num.zeros(shape=(self.numHiddenNodes, self.numInputNodes))
 
 		#Generate mod matrix for weights going from hidden layer to output
 		for x in range (0, self.numHiddenNodes):
-			#print("Output")
-			#print (actualOutputMatrix)
 
+			#Calculate the total error at the output node
 			totalErrorMatrix = num.subtract(expectedOutput, actualOutputMatrix)
 			totalErrorMatrix = num.square(totalErrorMatrix)
 			totalErrorMatrix = num.divide(totalErrorMatrix, 2)
 			totalError = totalErrorMatrix.sum()
-			#print("Total error")
-			#print(totalError)
-
+			
 			dTotalToOut2 = -(expectedOutput-actualOutput)
-			#print("dTotalToOut")
-			#print (dTotalToOut)
+
 			dOutToNet2 = actualOutput*(1-actualOutput)
-			#print("OutToNet")
-			#print (dOutToNet)
+			
 			dNetToSynapse2 = self.hiddenLayerOutput.item(0, x)
-			#print("dNetToSynapse")
-			#print (dNetToSynapse)
+
+			
 			dTotalToSynapse2 = dTotalToOut2*dOutToNet2*dNetToSynapse2
-			#print("dTotalToSynapse")
-			#print(dTotalToSynapse)
+			
 			modifierMatrix2[x, 0] = dTotalToSynapse2
 
 		for y in range (0, self.numInputNodes):
@@ -125,7 +121,7 @@ if (int(get_argument(args.optional_arguments, 'h'))):
 else:
 	hidden_nodes = 5
 if (int(get_argument(args.optional_arguments, 'p'))):
-	holdout_percent = (int(get_argument(args.optional_arguments, 'p')))/100
+	holdout_percent = (int(get_argument(args.optional_arguments, 'p')))/100 #TODO CHECK THIS (dividing by 100)
 else:
 	holdout_percent = 0.20
 
@@ -150,3 +146,5 @@ testSet, trainingSet = split_list(points, holdout_percent)
 
 "Go through the training set and train the neural net on each val"
 neuralNet.modifierCompute(num.matrix([1.2, 0.4]), 0)
+
+
