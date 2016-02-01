@@ -198,6 +198,7 @@ def ann_main():
 	testSet, trainingSet = split_list(points, holdout_percent)
 
 	"Go through the training set and train the neural net on each val"
+	print(neuralNet.classify_set(testSet))
 	neuralNet.train_set(trainingSet)
 
 	"Determine the error rate of the testSet"
