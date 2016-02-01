@@ -16,12 +16,19 @@ def get_argument(list_of_args, arg):
 
 "Used to split a list into two based on a percentage"
 #TODO: Make the split random, not based on sequence
-def split_list(list, percentage):
-	length = len(list)
-	divider = int(percentage*length)
-	list1 = list[0:divider]
-	list2 = list[divider:length]
-	return list1, list2
+def split_list(input_list, percentage):
+	length = len(input_list)
+	divider = num.floor(percentage*length)
+	divider = int(divider)
+	list1 = []
+
+	x = 0
+	while(x < divider): 
+		index = num.random.randint(0, divider)
+		list1.append(input_list[index])
+		del input_list[index]
+		divider = divider-1
+	return list1, input_list
 
 "Class definition for Artifical Neural Network"
 class ANN():
@@ -76,7 +83,7 @@ class ANN():
 			totalErrorMatrix = num.square(totalErrorMatrix)
 			totalErrorMatrix = num.divide(totalErrorMatrix, 2)
 			totalError = totalErrorMatrix.sum()
-			
+
 			dTotalToOut2 = -(expectedOutput-actualOutput)
 
 			dOutToNet2 = actualOutput*(1-actualOutput)
@@ -100,16 +107,29 @@ class ANN():
 					dTotalToSynapse1 = dTotalToOut1 * dOutToNet1 * dNetToSynapse1
 					modifierMatrix1[y, x] = dTotalToSynapse1
 
-		print ("modifierMatrix2")
-		print (modifierMatrix2)
-		print ("modifierMatrix1")
-		print (modifierMatrix1)
 		return modifierMatrix2, modifierMatrix1
 
-	def update_weights(self, modiferMatrix1, modifierMatrix2):
+	def update_weights(self, modifierMatrix1, modifierMatrix2):
 		self.synapseLayer1 = num.subtract(self.synapseLayer1, modifierMatrix1)
 		self.synapseLayer2 = num.subtract(self.synapseLayer2, modifierMatrix2)
 		return
+
+	def classify_set(self, testSet):
+		incorrectClassifications = 0
+	
+		for point in testSet:
+			actual = self.propagate(num.matrix([point['x_val'], point['y_val']]))
+			actual = num.round(actual)
+			if(actual != point['class']):
+				incorrectClassifications = incorrectClassifications + 1
+		return incorrectClassifications/len(testSet)
+
+	def train_set(self, trainingSet):
+		for point in trainingSet:
+			modMatrix2, modMatrix1 = self.modifierCompute(num.matrix([point['x_val'], point['y_val']]), point['class'])
+			self.update_weights(modMatrix1, modMatrix2)
+		return
+
 
 "Start processing input"
 parser = argparse.ArgumentParser()
@@ -126,8 +146,8 @@ if (int(get_argument(args.optional_arguments, 'h'))):
 	hidden_nodes = (int(get_argument(args.optional_arguments, 'h')))
 else:
 	hidden_nodes = 5
-if (int(get_argument(args.optional_arguments, 'p'))):
-	holdout_percent = (int(get_argument(args.optional_arguments, 'p')))/100 #TODO CHECK THIS (dividing by 100)
+if (float(get_argument(args.optional_arguments, 'p'))):
+	holdout_percent = (float(get_argument(args.optional_arguments, 'p'))) #TODO CHECK THIS (dividing by 100)
 else:
 	holdout_percent = 0.20
 
@@ -151,20 +171,8 @@ for line in file_content:
 testSet, trainingSet = split_list(points, holdout_percent)
 
 "Go through the training set and train the neural net on each val"
-#modifierMatrix2, modifierMatrix1 = neuralNet.modifierCompute(num.matrix([1.2, 0.4]), 0)
+neuralNet.train_set(trainingSet)
 
-#neuralNet.update_weights(modifierMatrix1, modifierMatrix2)
+errorRate = neuralNet.classify_set(testSet)
 
-for point in trainingSet:
-	modifierMatrix2, modifierMatrix1 = neuralNet.modifierCompute(num.matrix([point['x_val'], point['y_val']]), point['class'])
-	neuralNet.update_weights(modifierMatrix1, modifierMatrix2)
-
-incorrectClassifications = 0
-for point in testSet:
-	actual = neuralNet.propagate(num.matrix([point['x_val'], point['y_val']]))
-	actual = num.round(actual)
-	if(actual != point['class']):
-		incorrectClassifications = incorrectClassifications + 1
-
-print (len(testSet))
-print (incorrectClassifications)
+print(errorRate)
